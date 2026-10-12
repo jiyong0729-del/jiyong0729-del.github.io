@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>미니 로얄</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{height:100%;background:#141a33;color:#fff;font-family:"Jua","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;overflow:hidden}
+#app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:6px;gap:6px}
+#hud{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:18px;padding:2px 10px}
+#hud .crown{background:#243060;border-radius:10px;padding:3px 12px;border:2px solid #3a4a8c}
+#hud .time{font-size:22px;color:#ffd84a;text-shadow:0 2px 0 #000}
+#wrap{flex:1;min-height:0;display:flex;justify-content:center;align-items:center}
+canvas{border-radius:12px;border:3px solid #0c1022;touch-action:none;display:block}
+#bottom{display:flex;flex-direction:column;gap:6px}
+#elx{position:relative;height:22px;border-radius:11px;background:#2a1650;border:2px solid #6c3ab5;overflow:hidden}
+#elf{height:100%;width:50%;background:linear-gradient(#e86cff,#a02ad6);transition:width .1s linear}
+#elx::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 2px),rgba(0,0,0,.35) calc(10% - 2px) 10%)}
+#eln{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;z-index:2;text-shadow:0 1px 2px #000}
+#cards{display:flex;gap:6px;align-items:stretch}
+#next{width:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#aab;gap:2px}
+#next .mini{width:36px;height:44px;border-radius:8px;background:#2c3566;display:flex;align-items:center;justify-content:center;font-size:20px;opacity:.8}
+.card{flex:1;position:relative;height:84px;border-radius:12px;background:linear-gradient(#5a6bd6,#3a47a8);border:3px solid #1e2766;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:transform .1s}
+.card .ic{font-size:30px;line-height:1}
+.card .nm{font-size:12px;font-weight:700}
+.card .co{position:absolute;left:-6px;top:-8px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f59bff,#a02ad6);border:2px solid #3b0f66;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+.card.dis{filter:grayscale(.8) brightness(.6)}
+.card.sel{transform:translateY(-10px);border-color:#ffd84a;box-shadow:0 0 14px #ffd84a}
+.ov{position:fixed;inset:0;background:rgba(10,14,34,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9;text-align:center;padding:20px}
+.ov h1{font-size:44px;color:#ffd84a;text-shadow:0 4px 0 #8a5a00}
+.ov p{color:#c9d0f5;line-height:1.5;font-size:15px;max-width:340px}
+.ov button{font:inherit;font-weight:800;font-size:22px;padding:12px 38px;border-radius:14px;border:3px solid #0a5a1e;background:linear-gradient(#5be26b,#25a83a);color:#fff;cursor:pointer;text-shadow:0 2px 0 #0a5a1e}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud"><div class="crown">🔴 <span id="cE">0</span></div><div class="time" id="tm">3:00</div><div class="crown">🔵 <span id="cP">0</span></div></div>
+  <div id="wrap"><canvas id="c"></canvas></div>
+  <div id="bottom">
+    <div id="elx"><div id="elf"></div><div id="eln">5</div></div>
+    <div id="cards"><div id="next"><span>다음</span><div class="mini" id="nx"></div></div><div id="hand" style="display:contents"></div></div>
+  </div>
+</div>
+<div class="ov" id="ov">
+  <h1 id="ovT">미니 로얄</h1>
+  <p id="ovP">카드를 고른 뒤 아래쪽(내 진영)을 눌러 유닛을 소환하세요.<br>적의 킹타워를 부수거나, 3분 안에 더 많은 타워를 부수면 승리!<br>파이어볼은 어디든 던질 수 있어요.</p>
+  <button id="go">시작</button>
+</div>
+
+<script>
+const W=360,H=560,RY=280,BR=[90,270];
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const DPR=Math.min(2,window.devicePixelRatio||1);
+cv.width=W*DPR;cv.height=H*DPR;
+const $=id=>document.getElementById(id);
+
+// ---------- 데이터 ----------
+const T={
+  knight:{ic:'⚔️',hp:720,dmg:78,spd:36,rng:16,as:1.1,r:11},
+  archer:{ic:'🏹',hp:260,dmg:46,spd:34,rng:110,as:1,r:9,rg:1},
+  giant:{ic:'🗿',hp:2100,dmg:115,spd:23,rng:18,as:1.5,r:16,bld:1},
+  gob:{ic:'👺',hp:170,dmg:58,spd:68,rng:12,as:.7,r:8},
+  musk:{ic:'🔫',hp:390,dmg:98,spd:32,rng:125,as:1.1,r:10,rg:1},
+  pekka:{ic:'🤖',hp:780,dmg:270,spd:40,rng:16,as:1.6,r:12},
+  skel:{ic:'💀',hp:60,dmg:36,spd:56,rng:11,as:.8,r:7}
+};
+const CARDS={
+  knight:{n:'기사',e:3,ic:'⚔️',s:[['knight',0,0]]},
+  archer:{n:'궁수',e:3,ic:'🏹',s:[['archer',-11,0],['archer',11,0]]},
+  giant:{n:'자이언트',e:5,ic:'🗿',s:[['giant',0,0]]},
+  gob:{n:'고블린',e:2,ic:'👺',s:[['gob',-12,0],['gob',12,0],['gob',0,-12]]},
+  musk:{n:'머스킷',e:4,ic:'🔫',s:[['musk',0,0]]},
+  pekka:{n:'미니 페카',e:4,ic:'🤖',s:[['pekka',0,0]]},
+  skel:{n:'해골군단',e:1,ic:'💀',s:[['skel',-10,0],['skel',10,0],['skel',0,-10]]},
+  fire:{n:'파이어볼',e:4,ic:'🔥',spell:1}
+};
+const KEYS=Object.keys(CARDS);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+// ---------- 상태 ----------
+let G=null,mouse={x:180,y:420,in:false};
+function tower(team,x,y,king){return{tw:1,team,x,y,king,hp:king?2400:1400,max:king?2400:1400,dmg:king?62:55,as:king?1:.8,rng:king?125:120,r:king?26:21,cd:0,active:!king,dead:0}}
+function init(){
+  const deck=shuffle(KEYS);
+  G={t:180,el:5,ael:5,units:[],fx:[],proj:[],crowns:[0,0],over:false,aiT:4,
+     deck,hand:deck.slice(0,4),q:deck.slice(4),sel:-1,
+     towers:[tower(1,90,115),tower(1,270,115),tower(1,180,42,1),tower(0,90,445),tower(0,270,445),tower(0,180,518,1)]};
+  renderHand();hud();
+}
+function spawn(team,key,x,y){
+  for(const [k,ox,oy] of CARDS[key].s){
+    const d=T[k];
+    G.units.push({k,team,x:x+ox,y:y+oy,hp:d.hp,max:d.hp,cd:.3,sp:.7,tg:null,rt:0,r:d.r});
+  }
+}
+function fireball(team,x,y){
+  G.fx.push({t:0,x,y,ring:1});
+  for(const u of G.units) if(u.team!==team&&Math.hypot(u.x-x,u.y-y)<58+u.r) hit(u,300,team);
+  for(const t of G.towers) if(t.team!==team&&!t.dead&&Math.hypot(t.x-x,t.y-y)<58+t.r) hit(t,105,team);
+}
+function hit(t,a,team){
+  if(t.hp<=0)return;
+  t.hp-=a;
+  if(t.tw&&!t.king){const k=G.towers.find(o=>o.team===t.team&&o.king);k.active=true}
+  if(t.tw&&t.king)t.active=true;
+  if(t.tw&&t.hp<=0){
+    t.hp=0;t.dead=1;
+    const k=1-t.team;
+    if(t.king){G.crowns[k]=3;end()}
+    else{G.crowns[k]++;G.towers.find(o=>o.team===t.team&&o.king).active=true}
+    G.fx.push({t:0,x:t.x,y:t.y,ring:1});hud();
+  }
+}
+function end(){
+  if(G.over)return;G.over=true;
+  const[p,e]=[G.crowns[0],G.crowns[1]];
+  $('ovT').textContent=p>e?'🏆 승리!':p<e?'💥 패배':'🤝 무승부';
+  $('ovP').innerHTML=`내 왕관 ${p} : 적 왕관 ${e}`;
+  $('go').textContent='다시 하기';
+  setTimeout(()=>$('ov').classList.remove('hide'),900);
+}
+
+// ---------- 유닛 AI ----------
+function findTarget(u){
+  const d=T[u.k];let best=null,bd=1e9;
+  if(!d.bld)for(const o of G.units){
+    if(o.team===u.team||o.hp<=0)continue;
+    const dd=Math.hypot(o.x-u.x,o.y-u.y);
+    if(dd<95&&dd<bd){bd=dd;best=o}
+  }
+  if(best)return best;
+  bd=1e9;
+  for(const t of G.towers){
+    if(t.team===u.team||t.dead)continue;
+    const dd=Math.hypot(t.x-u.x,t.y-u.y);
+    if(dd<bd){bd=dd;best=t}
+  }
+  return best;
+}
+function updUnit(u,dt){
+  if(u.sp>0){u.sp-=dt;return}
+  u.cd-=dt;u.rt-=dt;
+  const d=T[u.k];
+  if(u.rt<=0||!u.tg||u.tg.hp<=0){u.tg=findTarget(u);u.rt=.35}
+  const t=u.tg;if(!t)return;
+  const dx=t.x-u.x,dy=t.y-u.y,dist=Math.hypot(dx,dy);
+  if(dist<=d.rng+(t.r||8)+d.r*.4){
+    if(u.cd<=0){u.cd=d.as;hit(t,d.dmg,u.team);if(d.rg)G.proj.push({x1:u.x,y1:u.y,x2:t.x,y2:t.y,t:0,c:u.team?'#ff8a8a':'#9ad0ff'})}
+    return;
+  }
+  let wx=t.x,wy=t.y;
+  const inBand=Math.abs(u.y-RY)<22;
+  if(inBand||(u.y-RY)*(t.y-RY)<0){
+    const bx=Math.abs(u.x-BR[0])<Math.abs(u.x-BR[1])?BR[0]:BR[1];
+    wx=bx;wy=inBand?(t.y>RY?RY+60:RY-60):RY;
+  }
+  const ddx=wx-u.x,ddy=wy-u.y,dd=Math.hypot(ddx,ddy)||1;
+  const s=d.spd*dt;
+  u.x+=ddx/dd*s;u.y+=ddy/dd*s;
+}
+function constrain(u){
+  u.x=Math.max(10,Math.min(W-10,u.x));u.y=Math.max(10,Math.min(H-10,u.y));
+  if(Math.abs(u.y-RY)<14&&Math.min(Math.abs(u.x-BR[0]),Math.abs(u.x-BR[1]))>22){
+    u.y=u.y<RY?RY-14:RY+14;
+  }
+  for(const t of G.towers){
+    if(t.dead)continue;
+    const dx=u.x-t.x,dy=u.y-t.y,d=Math.hypot(dx,dy),m=t.r+u.r*.6;
+    if(d<m&&d>0){u.x=t.x+dx/d*m;u.y=t.y+dy/d*m}
+  }
+}
+function updTower(t,dt){
+  if(t.dead||!t.active&&t.king)return;
+  t.cd-=dt;if(t.cd>0)return;
+  let best=null,bd=t.rng;
+  for(const u of G.units){
+    if(u.team===t.team||u.hp<=0||u.sp>0)continue;
+    const d=Math.hypot(u.x-t.x,u.y-t.y);
+    if(d<bd){bd=d;best=u}
+  }
+  if(best){t.cd=t.as;hit(best,t.dmg,t.team);G.proj.push({x1:t.x,y1:t.y,x2:best.x,y2:best.y,t:0,c:'#ffe066'})}
+}
+
+// ---------- 적 AI ----------
+function aiThink(dt){
+  G.aiT-=dt;if(G.aiT>0)return;
+  G.aiT=1.2+Math.random()*2;
+  const opts=shuffle(KEYS).filter(k=>CARDS[k].e<=G.ael);
+  if(!opts.length)return;
+  if(G.ael<6&&Math.random()<.4)return;
+  const k=opts[0],c=CARDS[k];
+  const threats=G.units.filter(u=>u.team===0&&u.y<RY+30);
+  if(c.spell){
+    let bp=null,bn=2;
+    for(const u of G.units){
+      if(u.team!==0)continue;
+      const n=G.units.filter(o=>o.team===0&&Math.hypot(o.x-u.x,o.y-u.y)<60).length;
+      if(n>bn){bn=n;bp=u}
+    }
+    if(!bp)return;
+    G.ael-=c.e;fireball(1,bp.x,bp.y);return;
+  }
+  let x,y=170+Math.random()*70;
+  if(threats.length&&Math.random()<.7){x=threats[0].x;y=150+Math.random()*30}
+  else x=BR[Math.random()<.5?0:1]+(Math.random()*30-15);
+  G.ael-=c.e;spawn(1,k,x,y);
+}
+
+// ---------- 메인 루프 ----------
+let last=0,running=false;
+function loop(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(running&&!G.over){
+    G.t-=dt;
+    const rate=(G.t<60?2:1)/2.8;
+    G.el=Math.min(10,G.el+rate*dt);G.ael=Math.min(10,G.ael+rate*dt);
+    aiThink(dt);
+    for(const u of G.units)updUnit(u,dt);
+    for(let i=0;i<G.units.length;i++)for(let j=i+1;j<G.units.length;j++){
+      const a=G.units[i],b=G.units[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),m=(a.r+b.r)*.85;
+      if(d<m&&d>0){const p=(m-d)/2;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}
+    }
+    for(const u of G.units)constrain(u);
+    for(const t of G.towers)updTower(t,dt);
+    G.units=G.units.filter(u=>u.hp>0);
+    if(G.t<=0){G.t=0;end()}
+  }
+  if(G){for(const f of G.fx)f.t+=dt;G.fx=G.fx.filter(f=>f.t<.5);for(const p of G.proj)p.t+=dt;G.proj=G.proj.filter(p=>p.t<.12);draw();tick()}
+  requestAnimationFrame(loop);
+}
+
+// ---------- 그리기 ----------
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  for(let y=0;y<H;y+=40)for(let x=0;x<W;x+=40){ctx.fillStyle=((x+y)/40)%2?'#5aa84a':'#63b252';ctx.fillRect(x,y,40,40)}
+  // 강
+  ctx.fillStyle='#38a0e8';ctx.fillRect(0,RY-14,W,28);
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=2;
+  const o=performance.now()/600;
+  for(let x=0;x<W;x+=30){ctx.beginPath();ctx.arc(x+(o*10%30),RY-4,5,Math.PI,0);ctx.stroke();ctx.beginPath();ctx.arc(x+15-(o*10%30)+30,RY+6,5,0,Math.PI);ctx.stroke()}
+  for(const bx of BR){ctx.fillStyle='#9b6b3a';ctx.fillRect(bx-22,RY-18,44,36);ctx.strokeStyle='#6b4520';ctx.lineWidth=2;for(let y=RY-14;y<RY+18;y+=8){ctx.beginPath();ctx.moveTo(bx-22,y);ctx.lineTo(bx+22,y);ctx.stroke()}ctx.strokeRect(bx-22,RY-18,44,36)}
+  // 소환 구역
+  if(G.sel>=0&&!CARDS[G.hand[G.sel]].spell){ctx.fillStyle='rgba(120,200,255,.18)';ctx.fillRect(0,RY+16,W,H-RY-16)}
+  // 타워
+  for(const t of G.towers)drawTower(t);
+  // 유닛
+  const us=G.units.slice().sort((a,b)=>a.y-b.y);
+  for(const u of us)drawUnit(u);
+  // 투사체
+  for(const p of G.proj){ctx.strokeStyle=p.c;ctx.lineWidth=3;ctx.beginPath();const k=p.t/.12;ctx.moveTo(p.x1+(p.x2-p.x1)*k*.6,p.y1+(p.y2-p.y1)*k*.6);ctx.lineTo(p.x1+(p.x2-p.x1)*k,p.y1+(p.y2-p.y1)*k);ctx.stroke()}
+  // 이펙트
+  for(const f of G.fx){const k=f.t/.5;ctx.globalAlpha=1-k;ctx.fillStyle='#ff8a1e';ctx.beginPath();ctx.arc(f.x,f.y,58*Math.min(1,k*2.2),0,7);ctx.fill();ctx.globalAlpha=1}
+  // 고스트
+  if(G.sel>=0&&mouse.in){
+    const c=CARDS[G.hand[G.sel]];
+    if(c.spell){ctx.strokeStyle='#ff8a1e';ctx.lineWidth=3;ctx.beginPath();ctx.arc(mouse.x,mouse.y,58,0,7);ctx.stroke()}
+    else{const ok=mouse.y>RY+16;ctx.globalAlpha=.7;ctx.font='24px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ok?c.ic:'🚫',mouse.x,mouse.y);ctx.globalAlpha=1}
+  }
+}
+function bar(x,y,w,p,col){ctx.fillStyle='#0008';ctx.fillRect(x-w/2,y,w,5);ctx.fillStyle=col;ctx.fillRect(x-w/2,y,w*Math.max(0,p),5)}
+function drawTower(t){
+  const s=t.r*2,c=t.team?'#e5484d':'#3b82f6';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(t.dead){ctx.font='26px serif';ctx.fillText('🪨',t.x,t.y);return}
+  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(t.x,t.y+t.r-2,t.r,6,0,0,7);ctx.fill();
+  ctx.fillStyle=c;ctx.strokeStyle='#111a';ctx.lineWidth=3;
+  ctx.beginPath();ctx.roundRect(t.x-t.r,t.y-t.r,s,s,8);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#fff3';ctx.fillRect(t.x-t.r+4,t.y-t.r+4,s-8,7);
+  ctx.font=(t.king?28:22)+'px serif';ctx.fillStyle='#fff';ctx.fillText(t.king?'👑':'🏰',t.x,t.y+2);
+  const w=t.king?54:44;bar(t.x,t.y+(t.team?-t.r-10:t.r+4),w,t.hp/t.max,t.team?'#ff6b6b':'#6bd0ff');
+  ctx.font='bold 10px sans-serif';ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=2.5;
+  const ty=t.y+(t.team?-t.r-17:t.r+17);ctx.strokeText(Math.ceil(t.hp),t.x,ty);ctx.fillText(Math.ceil(t.hp),t.x,ty);
+}
+function drawUnit(u){
+  const d=T[u.k];
+  ctx.globalAlpha=u.sp>0?.5:1;
+  ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(u.x,u.y+u.r*.7,u.r,u.r*.4,0,0,7);ctx.fill();
+  ctx.fillStyle=u.team?'#e5484d':'#3b82f6';ctx.strokeStyle='#fff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(u.x,u.y,u.r,0,7);ctx.fill();ctx.stroke();
+  ctx.font=(u.r*1.5)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText(d.ic,u.x,u.y+1);
+  if(u.hp<u.max)bar(u.x,u.y-u.r-8,Math.max(18,u.r*2),u.hp/u.max,u.team?'#ff6b6b':'#6bd0ff');
+  ctx.globalAlpha=1;
+}
+
+// ---------- UI ----------
+function hud(){$('cE').textContent=G.crowns[1];$('cP').textContent=G.crowns[0]}
+function renderHand(){
+  const h=$('hand');h.innerHTML='';
+  G.hand.forEach((k,i)=>{
+    const c=CARDS[k],d=document.createElement('div');
+    d.className='card';d.innerHTML=`<div class="co">${c.e}</div><div class="ic">${c.ic}</div><div class="nm">${c.n}</div>`;
+    d.onpointerdown=e=>{e.preventDefault();if(!running||G.over)return;G.sel=G.sel===i?-1:i};
+    h.appendChild(d);
+  });
+  $('nx').textContent=CARDS[G.q[0]].ic;
+}
+function tick(){
+  const m=Math.max(0,Math.ceil(G.t));$('tm').textContent=Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+  $('elf').style.width=G.el*10+'\%';$('eln').textContent=Math.floor(G.el);
+  [...$('hand').children].forEach((d,i)=>{d.classList.toggle('dis',CARDS[G.hand[i]].e>G.el);d.classList.toggle('sel',G.sel===i)});
+}
+function play(x,y){
+  if(G.sel<0||G.over)return;
+  const k=G.hand[G.sel],c=CARDS[k];
+  if(c.e>G.el)return;
+  if(c.spell)fireball(0,x,y);
+  else{if(y<RY+16||y>H-10)return;spawn(0,k,x,y)}
+  G.el-=c.e;
+  const nk=G.q.shift();G.q.push(k);G.hand[G.sel]=nk;G.sel=-1;renderHand();
+}
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
+cv.addEventListener('pointermove',e=>{const p=pos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true});
+cv.addEventListener('pointerleave',()=>mouse.in=false);
+cv.addEventListener('pointerdown',e=>{const p=pos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;play(p.x,p.y)});
+function fit(){
+  const w=$('wrap'),s=Math.min(w.clientWidth/W,w.clientHeight/H);
+  cv.style.width=W*s+'px';cv.style.height=H*s+'px';
+}
+addEventListener('resize',fit);
+$('go').onclick=()=>{init();$('ov').classList.add('hide');running=true;fit()};
+init();fit();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
