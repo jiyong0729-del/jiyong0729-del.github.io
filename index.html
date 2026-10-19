@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visca Barcelona - 바르셀로나 도시 소개</title>
+<title>Visca Barça - FC 바르셀로나 소개</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#0f172a;color:#f8fafc;font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;line-height:1.6;overflow-x:hidden}
@@ -11,24 +11,25 @@ html,body{height:100%;background:#0f172a;color:#f8fafc;font-family:'Apple SD Got
 #container{max-width:700px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:24px}
 
 /* 히어로 헤더 */
-header{text-align:center;padding:32px 16px;background:linear-gradient(135deg, #1e3a8a, #991b1b);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.4)}
-header h1{font-size:32px;font-weight:800;color:#fef08a;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.5)}
+header{text-align:center;padding:32px 16px;background:linear-gradient(135deg, #004d98, #a50044);border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,0.4)}
+header h1{font-size:32px;font-weight:800;color:#fcbf00;margin-bottom:8px;text-shadow:0 2px 4px rgba(0,0,0,0.5)}
 header p{font-size:15px;color:#e2e8f0}
 
 /* 섹션 공통 스타일 */
 .section-card{background:#1e293b;border-radius:14px;padding:20px;border:1px solid #334155;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .section-title{font-size:20px;font-weight:700;color:#38bdf8;margin-bottom:14px;display:flex;align-items:center;gap:8px;border-bottom:2px solid #334155;padding-bottom:8px}
 
-/* 명소 카드 그리드 */
+/* 선수 카드 그리드 */
 .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px}
 .place-item{background:#0f172a;padding:14px;border-radius:10px;border:1px solid #334155;transition:transform 0.2s}
 .place-item:hover{transform:translateY(-3px);border-color:#38bdf8}
-.place-item h3{font-size:16px;color:#fef08a;margin-bottom:6px}
-.place-item p{font-size:13px;color:#94a3b8}
+.place-item h3{font-size:16px;color:#fcbf00;margin-bottom:6px}
+.place-item .num{font-size:12px;color:#a50044;font-weight:bold}
+.place-item p{font-size:13px;color:#94a3b8;margin-top:4px}
 
-/* 문화 및 축구 소개 */
+/* 팀 소개 리스트 */
 .info-list{list-style:none;display:flex;flex-direction:column;gap:10px}
-.info-item{background:#0f172a;padding:12px 14px;border-radius:8px;font-size:14px;color:#cbd5e1;border-left:4px solid #ef4444}
+.info-item{background:#0f172a;padding:12px 14px;border-radius:8px;font-size:14px;color:#cbd5e1;border-left:4px solid #a50044}
 
 /* 백로그 섹션 (과제 제출 조건용) */
 .backlog-section{background:#1e293b;border-radius:14px;padding:20px;border:1px solid #334155}
@@ -45,55 +46,51 @@ footer{text-align:center;padding:16px 0;font-size:13px;color:#64748b}
 <div id="container">
   <!-- 메인 히어로 헤더 -->
   <header>
-    <h1>BARCELONA 🇪🇸</h1>
-    <p>가우디의 예술과 카탈루냐의 열정이 숨쉬는 도시</p>
+    <h1>FC BARCELONA ⚽</h1>
+    <p>Més que un club - 축구 그 이상의 가치를 지닌 카탈루냐의 자부심</p>
   </header>
 
-  <!-- 주요 명소 소개 -->
+  <!-- 클럽 소개 -->
   <div class="section-card">
-    <h2 class="section-title">🏛️ 대표 관광 명소</h2>
-    <div class="grid">
-      <div class="place-item">
-        <h3>사그라다 파밀리아</h3>
-        <p>안토니 가우디의 미완성 대작 성당. 독창적인 건축미의 결정체입니다.</p>
-      </div>
-      <div class="place-item">
-        <h3>구엘 공원</h3>
-        <p>화려한 모자이크 타일과 지중해가 한눈에 보이는 동화 같은 공원입니다.</p>
-      </div>
-      <div class="place-item">
-        <h3>람블라 거리</h3>
-        <p>활기찬 버스킹과 보케리아 시장이 위치한 바르셀로나 중심 거리입니다.</p>
-      </div>
-      <div class="place-item">
-        <h3>카사 바트요</h3>
-        <p>바다를 형상화한 곡선과 곡면의 미학이 돋보이는 가우디의 대표작입니다.</p>
-      </div>
-    </div>
+    <h2 class="section-title">🔵🔴 FC 바르셀로나란?</h2>
+    <ul class="info-list">
+      <li class="info-item"><strong>창단:</strong> 1899년 창단된 스페인 카탈루냐를 대표하는 세계적인 축구 클럽입니다.</li>
+      <li class="info-item"><strong>홈구장:</strong> '스포티파이 캄 노우'를 홈으로 사용하며, 블라우그라나(청적색) 유니폼으로 유명합니다.</li>
+      <li class="info-item"><strong>철학:</strong> 'Més que un club(축구 그 이상)'이라는 슬로건 아래 유소년 육성과 점유율 축구로 사랑받습니다.</li>
+    </ul>
   </div>
 
-  <!-- 문화 및 음식 -->
+  <!-- 좋아하는 선수 소개 -->
   <div class="section-card">
-    <h2 class="section-title">🍷 바르셀로나의 문화 & 맛</h2>
-    <ul class="info-list">
-      <li class="info-item"><strong>타파스 (Tapas):</strong> 한입 크기의 소량 요리로 즐기는 스페인 전통 식문화입니다.</li>
-      <li class="info-item"><strong>FC 바르셀로나 (FCB):</strong> 세계적인 축구 클럽 '스포티파이 캄 노우'의 열기를 느낄 수 있습니다.</li>
-      <li class="info-item"><strong>지중해 해변:</strong> 바르셀로네타 해변에서 라이프스타일과 여유를 즐길 수 있습니다.</li>
-    </ul>
+    <h2 class="section-title">⭐ 내가 좋아하는 선수들</h2>
+    <div class="grid">
+      <div class="place-item">
+        <h3>로베르트 레반도프스키 <span class="num">#9</span></h3>
+        <p>내가 가장 좋아하는 선수! 폴란드 출신의 월드클래스 스트라이커로, 완벽한 골 결정력과 위치 선정 능력을 자랑하는 바르샤의 해결사입니다.</p>
+      </div>
+      <div class="place-item">
+        <h3>리오넬 메시 <span class="num">#10</span></h3>
+        <p>바르셀로나의 전설이자 역대 최고의 선수. 수많은 우승과 발롱도르를 안겨준 클럽의 영원한 상징입니다.</p>
+      </div>
+      <div class="place-item">
+        <h3>라민 야말 <span class="num">#19</span></h3>
+        <p>라 마시아가 길러낸 천재 윙어. 어린 나이에도 놀라운 드리블과 창의성으로 바르샤의 미래를 이끌어가는 신성입니다.</p>
+      </div>
+    </div>
   </div>
 
   <!-- 과제 평가용 Next Sprint Backlog -->
   <div class="backlog-section">
     <h2>📋 Next Sprint Backlog (할 일 목록)</h2>
     <ul class="backlog-list">
-      <li class="backlog-item"><span class="badge">Sprint 2</span> 명소별 고화질 이미지 갤러리 및 라이트박스 기능 추가</li>
-      <li class="backlog-item"><span class="badge">Sprint 2</span> 카카오맵/구글맵 API 연동을 통한 관광 지도 구현</li>
-      <li class="backlog-item"><span class="badge">Sprint 3</span> 날씨 정보 실시간 API 연동 및 추천 여행 코스 안내 기능</li>
+      <li class="backlog-item"><span class="badge">Sprint 2</span> 선수별 고화질 프로필 이미지 갤러리 및 라이트박스 기능 추가</li>
+      <li class="backlog-item"><span class="badge">Sprint 2</span> 실시간 경기 일정 및 리그 순위 API 연동 구현</li>
+      <li class="backlog-item"><span class="badge">Sprint 3</span> 선수별 시즌 득점/도움 통계 차트 시각화 기능</li>
     </ul>
   </div>
 
   <footer>
-    <p>© 2026 Barcelona Guide Website. Built with GitHub Pages.</p>
+    <p>© 2026 FC Barcelona Fan Website. Built with GitHub Pages. Visca el Barça!</p>
   </footer>
 </div>
 
