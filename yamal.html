@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>라민 야말 · 생애 일대기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--blau:#004d98;--grana:#a50044;--gold:#edbb00;--ink:#0a0f1e}
+html{scroll-behavior:smooth}
+body{min-height:100%;background:var(--ink);color:#f8fafc;font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;line-height:1.6;overflow-x:hidden}
+
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(10,15,30,0.8);backdrop-filter:blur(8px);border-bottom:1px solid #243049}
+.topbar a{color:var(--gold);text-decoration:none;font-size:14px;font-weight:700}
+.topbar a:hover{text-decoration:underline}
+
+.hero{position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;overflow:hidden;
+  background:radial-gradient(900px 500px at 75% 15%, rgba(0,77,152,0.6), transparent 60%),
+    radial-gradient(900px 500px at 20% 85%, rgba(165,0,68,0.5), transparent 55%),
+    linear-gradient(135deg,#001a33,#0a0f1e 55%,#2a0012)}
+.hero::before{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(115deg,rgba(0,77,152,0.1) 0 40px,rgba(165,0,68,0.1) 40px 80px);animation:drift 18s linear infinite;opacity:0.5}
+@keyframes drift{from{transform:translateX(80px)}to{transform:translateX(-80px)}}
+.hero-inner{position:relative;z-index:2;animation:rise 1s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.bignum{font-size:clamp(80px,22vw,180px);font-weight:900;line-height:0.9;color:rgba(237,187,0,0.9);text-shadow:0 10px 40px rgba(0,0,0,0.5)}
+.hero h1{font-size:clamp(30px,7vw,52px);font-weight:900;letter-spacing:-1px;background:linear-gradient(90deg,var(--gold),#fff 50%,#4aa3ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0}
+.hero .tag{font-size:13px;letter-spacing:3px;color:#94a3b8;text-transform:uppercase}
+
+.stats{max-width:820px;margin:-30px auto 0;position:relative;z-index:3;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+.stat{background:linear-gradient(160deg,#16203a,#0b1222);border:1px solid #243049;border-radius:14px;padding:16px;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,0.4)}
+.stat .v{font-size:22px;font-weight:900;color:var(--gold)}
+.stat .l{font-size:12px;color:#94a3b8;margin-top:4px}
+
+#wrap{max-width:820px;margin:0 auto;padding:40px 20px}
+.section-title{font-size:24px;font-weight:800;color:#fff;margin:20px 0 26px;position:relative;padding-left:14px}
+.section-title::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:5px;border-radius:4px;background:linear-gradient(var(--blau),var(--grana))}
+
+.timeline{position:relative;margin-left:8px;padding-left:28px}
+.timeline::before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:3px;background:linear-gradient(var(--gold),var(--grana),var(--blau))}
+.tl-item{position:relative;margin-bottom:26px;background:#131a2e;border:1px solid #243049;border-radius:14px;padding:18px 20px;transition:transform .2s,border-color .2s}
+.tl-item:hover{transform:translateX(4px);border-color:var(--gold)}
+.tl-item::before{content:"";position:absolute;left:-28px;top:22px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(237,187,0,0.2)}
+.tl-year{display:inline-block;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--blau),var(--grana));padding:3px 12px;border-radius:999px;margin-bottom:8px}
+.tl-item h3{font-size:17px;color:var(--gold);margin-bottom:6px}
+.tl-item p{font-size:14px;color:#cbd5e1}
+
+.quote{margin:40px 0;padding:24px;border-radius:16px;background:linear-gradient(160deg,#16203a,#0b1222);border:1px solid #243049;text-align:center;font-style:italic;font-size:17px;color:#e2e8f0}
+.quote span{display:block;margin-top:10px;font-style:normal;font-size:13px;color:var(--gold);font-weight:700}
+
+.nav-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:30px;flex-wrap:wrap}
+.btn{padding:13px 22px;border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;transition:transform .2s}
+.btn:hover{transform:translateY(-3px)}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau))}
+.btn-ghost{color:var(--gold);border:1px solid rgba(237,187,0,0.6)}
+footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
+</style>
+</head>
+<body>
+
+<div class="topbar"><a href="index.html">← 홈으로</a></div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="bignum">19</div>
+    <h1>LAMINE YAMAL</h1>
+    <p class="tag">Winger · Spain 🇪🇸 · FC Barcelona</p>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="v">2007</div><div class="l">출생 (스페인)</div></div>
+  <div class="stat"><div class="v">10→19</div><div class="l">등번호</div></div>
+  <div class="stat"><div class="v">La Masia</div><div class="l">유소년 출신</div></div>
+  <div class="stat"><div class="v">WONDER</div><div class="l">차세대 천재 윙어</div></div>
+</div>
+
+<div id="wrap">
+  <h2 class="section-title">✨ 생애 일대기</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <span class="tl-year">2007</span>
+      <h3>스페인에서의 탄생</h3>
+      <p>2007년 스페인에서 태어났습니다. 어린 시절부터 공과 함께 자라며 남다른 재능을 드러냈습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">유소년</span>
+      <h3>라 마시아 입단</h3>
+      <p>바르셀로나의 명문 유소년 아카데미 '라 마시아'에 입단해 체계적인 훈련을 받으며 바르샤 스타일의 축구를 익혔습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2023</span>
+      <h3>최연소 1군 데뷔</h3>
+      <p>어린 나이에 FC 바르셀로나 1군 무대에 데뷔하며 클럽 역사에 남을 '신성'의 등장을 알렸습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2024</span>
+      <h3>국가대표 & 메이저 무대</h3>
+      <p>스페인 국가대표로도 발탁되어 메이저 대회에서 결정적인 활약을 펼치며 세계적인 주목을 받았습니다. 또래를 압도하는 담대함을 보여줬습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">NOW</span>
+      <h3>바르샤의 미래</h3>
+      <p>번뜩이는 드리블과 창의적인 플레이, 결정적인 득점 가담으로 팀의 핵심이자 미래를 이끄는 윙어로 성장하고 있습니다.</p>
+    </div>
+  </div>
+
+  <div class="quote">
+    "나이는 숫자일 뿐, 중요한 건 경기장 위에서의 모습이다."
+    <span>— Lamine Yamal</span>
+  </div>
+
+  <div class="nav-bottom">
+    <a class="btn btn-ghost" href="index.html">← 홈으로</a>
+    <a class="btn btn-primary" href="lewandowski.html">레반도프스키 일대기 →</a>
+  </div>
+</div>
+
+<footer>© 2026 FC Barcelona Fan Website · Visca el Barça! 🔵🔴</footer>
+
+</body>
+</html>

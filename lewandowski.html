@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로베르트 레반도프스키 · 생애 일대기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--blau:#004d98;--grana:#a50044;--gold:#edbb00;--ink:#0a0f1e}
+html{scroll-behavior:smooth}
+body{min-height:100%;background:var(--ink);color:#f8fafc;font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* 상단 바 */
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(10,15,30,0.8);backdrop-filter:blur(8px);border-bottom:1px solid #243049}
+.topbar a{color:var(--gold);text-decoration:none;font-size:14px;font-weight:700}
+.topbar a:hover{text-decoration:underline}
+
+/* 히어로 */
+.hero{position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;overflow:hidden;
+  background:radial-gradient(900px 500px at 25% 15%, rgba(165,0,68,0.5), transparent 60%),
+    radial-gradient(900px 500px at 80% 85%, rgba(0,77,152,0.6), transparent 55%),
+    linear-gradient(135deg,#001a33,#0a0f1e 55%,#2a0012)}
+.hero::before{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(115deg,rgba(0,77,152,0.1) 0 40px,rgba(165,0,68,0.1) 40px 80px);animation:drift 18s linear infinite;opacity:0.5}
+@keyframes drift{from{transform:translateX(-80px)}to{transform:translateX(80px)}}
+.hero-inner{position:relative;z-index:2;animation:rise 1s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.bignum{font-size:clamp(80px,22vw,180px);font-weight:900;line-height:0.9;color:rgba(237,187,0,0.9);text-shadow:0 10px 40px rgba(0,0,0,0.5)}
+.hero h1{font-size:clamp(30px,7vw,52px);font-weight:900;letter-spacing:-1px;background:linear-gradient(90deg,#4aa3ff,#fff 40%,var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0}
+.hero .tag{font-size:13px;letter-spacing:3px;color:#94a3b8;text-transform:uppercase}
+
+/* 프로필 요약 */
+.stats{max-width:820px;margin:-30px auto 0;position:relative;z-index:3;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+.stat{background:linear-gradient(160deg,#16203a,#0b1222);border:1px solid #243049;border-radius:14px;padding:16px;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,0.4)}
+.stat .v{font-size:22px;font-weight:900;color:var(--gold)}
+.stat .l{font-size:12px;color:#94a3b8;margin-top:4px}
+
+/* 타임라인 */
+#wrap{max-width:820px;margin:0 auto;padding:40px 20px}
+.section-title{font-size:24px;font-weight:800;color:#fff;margin:20px 0 26px;position:relative;padding-left:14px}
+.section-title::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:5px;border-radius:4px;background:linear-gradient(var(--blau),var(--grana))}
+
+.timeline{position:relative;margin-left:8px;padding-left:28px}
+.timeline::before{content:"";position:absolute;left:6px;top:4px;bottom:4px;width:3px;background:linear-gradient(var(--blau),var(--grana),var(--gold))}
+.tl-item{position:relative;margin-bottom:26px;background:#131a2e;border:1px solid #243049;border-radius:14px;padding:18px 20px;transition:transform .2s,border-color .2s}
+.tl-item:hover{transform:translateX(4px);border-color:var(--gold)}
+.tl-item::before{content:"";position:absolute;left:-28px;top:22px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(237,187,0,0.2)}
+.tl-year{display:inline-block;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau));padding:3px 12px;border-radius:999px;margin-bottom:8px}
+.tl-item h3{font-size:17px;color:var(--gold);margin-bottom:6px}
+.tl-item p{font-size:14px;color:#cbd5e1}
+
+.quote{margin:40px 0;padding:24px;border-radius:16px;background:linear-gradient(160deg,#16203a,#0b1222);border:1px solid #243049;text-align:center;font-style:italic;font-size:17px;color:#e2e8f0}
+.quote span{display:block;margin-top:10px;font-style:normal;font-size:13px;color:var(--gold);font-weight:700}
+
+.nav-bottom{display:flex;justify-content:space-between;gap:12px;margin-top:30px;flex-wrap:wrap}
+.btn{padding:13px 22px;border-radius:999px;font-size:14px;font-weight:700;text-decoration:none;transition:transform .2s}
+.btn:hover{transform:translateY(-3px)}
+.btn-primary{color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau))}
+.btn-ghost{color:var(--gold);border:1px solid rgba(237,187,0,0.6)}
+footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
+</style>
+</head>
+<body>
+
+<div class="topbar"><a href="index.html">← 홈으로</a></div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="bignum">9</div>
+    <h1>ROBERT LEWANDOWSKI</h1>
+    <p class="tag">Striker · Poland 🇵🇱 · FC Barcelona</p>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="v">1988</div><div class="l">출생 (폴란드 바르샤바)</div></div>
+  <div class="stat"><div class="v">RW9</div><div class="l">등번호 9</div></div>
+  <div class="stat"><div class="v">GOAL</div><div class="l">월드클래스 스트라이커</div></div>
+  <div class="stat"><div class="v">2022~</div><div class="l">바르셀로나 합류</div></div>
+</div>
+
+<div id="wrap">
+  <h2 class="section-title">⚽ 생애 일대기</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <span class="tl-year">1988</span>
+      <h3>폴란드에서의 탄생</h3>
+      <p>1988년 폴란드 바르샤바 인근에서 태어났습니다. 유도 선수였던 부모님의 영향으로 어릴 때부터 강인한 운동 신경을 키웠습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2010</span>
+      <h3>도르트문트, 유럽 무대 도약</h3>
+      <p>보루시아 도르트문트로 이적해 분데스리가 정상급 공격수로 성장했습니다. 빠른 침투와 결정력으로 리그 우승과 챔피언스리그 결승 진출을 이끌었습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2014</span>
+      <h3>바이에른 뮌헨, 득점 기계로</h3>
+      <p>뮌헨 이적 후 세계 최고의 스트라이커로 자리매김했습니다. 한 경기 9분 만에 5골을 넣는 전설적인 기록을 세우며 이름을 남겼습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2020</span>
+      <h3>트레블과 최고의 시즌</h3>
+      <p>뮌헨의 챔피언스리그 포함 트레블 달성을 이끌며 커리어 정점을 찍었고, 그 해 세계 최고의 선수로 꼽혔습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">2022</span>
+      <h3>FC 바르셀로나 입단</h3>
+      <p>꿈의 무대 캄 노우로 합류했습니다. 등번호 9번을 달고 데뷔 시즌부터 라리가 득점왕에 오르며 바르샤의 중심 공격수가 되었습니다.</p>
+    </div>
+    <div class="tl-item">
+      <span class="tl-year">NOW</span>
+      <h3>바르샤의 해결사</h3>
+      <p>풍부한 경험과 변함없는 골 감각으로 중요한 순간마다 팀을 구해내는 '해결사'로 활약하고 있습니다. 내가 가장 좋아하는 선수입니다.</p>
+    </div>
+  </div>
+
+  <div class="quote">
+    "나는 멈추지 않는다. 다음 골이 항상 가장 중요하다."
+    <span>— Robert Lewandowski</span>
+  </div>
+
+  <div class="nav-bottom">
+    <a class="btn btn-ghost" href="index.html">← 홈으로</a>
+    <a class="btn btn-primary" href="yamal.html">라민 야말 일대기 →</a>
+  </div>
+</div>
+
+<footer>© 2026 FC Barcelona Fan Website · Visca el Barça! 🔵🔴</footer>
+
+</body>
+</html>
