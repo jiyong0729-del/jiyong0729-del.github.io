@@ -1,0 +1,6 @@
+# Kiro 로컬 설정 (MCP 토큰 등 민감 정보 포함 가능) — 공개 금지
+.kiro/settings/
+
+# OS / 에디터 부산물
+.DS_Store
+Thumbs.db
