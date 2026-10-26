@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팩맨 · PAC-MAN</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--blau:#004d98;--grana:#a50044;--gold:#d69e00;--ink:#ffffff}
+html{scroll-behavior:smooth}
+body{min-height:100vh;background:var(--ink);color:#1a2235;font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;line-height:1.6;display:flex;flex-direction:column;align-items:center}
+
+.topbar{width:100%;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0}
+.topbar a{color:var(--grana);text-decoration:none;font-size:14px;font-weight:700}
+.topbar a:hover{text-decoration:underline}
+
+.wrap{width:100%;max-width:560px;padding:28px 20px 48px;text-align:center}
+h1{font-size:clamp(30px,8vw,46px);font-weight:900;letter-spacing:1px;margin-bottom:6px;
+  background:linear-gradient(90deg,var(--gold),var(--grana) 60%,var(--blau));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:13px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+
+.scorebar{display:flex;justify-content:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.chip{background:#f5f7fb;border:1px solid #e2e8f0;border-radius:12px;padding:10px 16px;min-width:96px;box-shadow:0 6px 18px rgba(0,30,80,0.06)}
+.chip .l{font-size:11px;color:#64748b;letter-spacing:1px}
+.chip .v{font-size:20px;font-weight:900;color:#0f172a}
+
+.board-shell{display:inline-block;padding:14px;border-radius:18px;background:#0b1020;box-shadow:0 18px 44px rgba(0,30,80,0.25);border:1px solid #1e293b}
+canvas{display:block;border-radius:8px;background:#000}
+
+.msg{min-height:26px;margin-top:16px;font-size:15px;font-weight:700;color:var(--grana)}
+.controls{margin-top:10px;font-size:13px;color:#64748b}
+.btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:999px;font-size:15px;font-weight:800;text-decoration:none;cursor:pointer;border:none;
+  color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau));box-shadow:0 10px 24px rgba(165,0,68,0.35);transition:transform .2s}
+.btn:hover{transform:translateY(-3px)}
+
+/* 모바일 방향 패드 */
+.dpad{margin:20px auto 0;display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:8px;justify-content:center}
+.dpad button{border:1px solid #e2e8f0;background:#f5f7fb;border-radius:12px;font-size:22px;font-weight:900;color:var(--blau);cursor:pointer}
+.dpad button:active{background:var(--blau);color:#fff}
+.dpad .up{grid-area:1/2}.dpad .left{grid-area:2/1}.dpad .right{grid-area:2/3}.dpad .down{grid-area:3/2}
+.dpad .spacer{visibility:hidden}
+
+footer{margin-top:30px;font-size:13px;color:#64748b}
+.vb{color:var(--grana);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="topbar"><a href="index.html">← 홈으로</a></div>
+
+<div class="wrap">
+  <h1>PAC-MAN</h1>
+  <p class="sub">Arrow keys / WASD · 모바일은 방향 버튼</p>
+
+  <div class="scorebar">
+    <div class="chip"><div class="l">SCORE</div><div class="v" id="score">0</div></div>
+    <div class="chip"><div class="l">LIVES</div><div class="v" id="lives">3</div></div>
+    <div class="chip"><div class="l">BEST</div><div class="v" id="best">0</div></div>
+  </div>
+
+  <div class="board-shell">
+    <canvas id="game" width="448" height="496"></canvas>
+  </div>
+
+  <div class="msg" id="msg">시작하려면 START 또는 방향키를 누르세요</div>
+  <button class="btn" id="start">▶ START</button>
+  <p class="controls">알약을 모두 먹으면 클리어! 파워 알약을 먹으면 유령을 잡을 수 있어요.</p>
+
+  <div class="dpad">
+    <button class="up" data-dir="up">▲</button>
+    <button class="left" data-dir="left">◀</button>
+    <span class="spacer"></span>
+    <button class="right" data-dir="right">▶</button>
+    <button class="down" data-dir="down">▼</button>
+  </div>
+
+  <footer>© 2026 FC Barcelona Fan Website · <span class="vb">Visca el Barça! 🔵🔴</span></footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const TILE = 16;
+
+  // 맵 범례: # 벽, . 알약, o 파워알약, ' ' 빈칸, - 유령집 문, 공백은 이동 가능
+  // 28열 x 31행 (클래식 레이아웃 기반, 길이 28 고정)
+  const RAW = [
+    "############################",
+    "#............##............#",
+    "#.####.#####.##.#####.####.#",
+    "#o####.#####.##.#####.####o#",
+    "#.####.#####.##.#####.####.#",
+    "#..........................#",
+    "#.####.##.########.##.####.#",
+    "#.####.##.########.##.####.#",
+    "#......##....##....##......#",
+    "######.##### ## #####.######",
+    "     #.##### ## #####.#     ",
+    "     #.##          ##.#     ",
+    "     #.## ###--### ##.#     ",
+    "######.## #      # ##.######",
+    "      .   #      #   .      ",
+    "######.## #      # ##.######",
+    "     #.## ######## ##.#     ",
+    "     #.##          ##.#     ",
+    "     #.## ######## ##.#     ",
+    "######.## ######## ##.######",
+    "#............##............#",
+    "#.####.#####.##.#####.####.#",
+    "#.####.#####.##.#####.####.#",
+    "#o..##.......  .......##..o#",
+    "###.##.##.########.##.##.###",
+    "###.##.##.########.##.##.###",
+    "#......##....##....##......#",
+    "#.##########.##.##########.#",
+    "#.##########.##.##########.#",
+    "#..........................#",
+    "############################"
+  ];
+
+  const ROWS = RAW.length;
+  const COLS = RAW[0].length;
+  let grid;         // 현재 맵(알약 소비 반영)
+  let totalDots;    // 남은 알약 수
+
+  const DIR = {
+    up:    {x:0, y:-1},
+    down:  {x:0, y:1},
+    left:  {x:-1, y:0},
+    right: {x:1, y:0},
+    none:  {x:0, y:0}
+  };
+
+  let pac, ghosts, score, lives, best, running, frightened, frightTimer, started, victory;
+
+  best = parseInt(localStorage.getItem('pacman_best') || '0', 10);
+  document.getElementById('best').textContent = best;
+
+  function resetMap(){
+    grid = RAW.map(r => r.split(''));
+    totalDots = 0;
+    for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
+      if(grid[y][x]==='.' || grid[y][x]==='o') totalDots++;
+    }
+  }
+
+  function newLevelPositions(){
+    pac = { x:13.5, y:23, dir:'left', next:'left', speed:0.11, mouth:0, mouthDir:1 };
+    const home = [
+      {color:'#ff0000', name:'blinky'},
+      {color:'#ffb8ff', name:'pinky'},
+      {color:'#00ffff', name:'inky'},
+      {color:'#ffb852', name:'clyde'}
+    ];
+    const starts = [ {x:13.5,y:11}, {x:13.5,y:14}, {x:11.5,y:14}, {x:15.5,y:14} ];
+    ghosts = home.map((g,i)=>({
+      x:starts[i].x, y:starts[i].y, dir:'up', color:g.color, name:g.name,
+      speed:0.085, eaten:false, release:i*40
+    }));
+    frightened = false;
+    frightTimer = 0;
+  }
+
+  function startGame(){
+    resetMap();
+    newLevelPositions();
+    score = 0; lives = 3; running = true; started = true; victory = false;
+    updateHud();
+    setMsg('');
+    loop();
+  }
+
+  function softReset(){
+    newLevelPositions();
+    running = true;
+    setMsg('');
+  }
+
+  function updateHud(){
+    document.getElementById('score').textContent = score;
+    document.getElementById('lives').textContent = lives;
+    document.getElementById('best').textContent = best;
+  }
+  function setMsg(t){ document.getElementById('msg').textContent = t; }
+
+  function isWall(cx, cy){
+    if(cy<0||cy>=ROWS) return true;
+    // 좌우 터널 래핑
+    if(cx<0||cx>=COLS) return false;
+    const c = grid[cy][cx];
+    return c==='#';
+  }
+
+  // 타일 중앙에 거의 맞았는지
+  function atCenter(v){ return Math.abs(v - Math.round(v)) < 0.08; }
+
+  function canMove(ex, ey, dir){
+    const d = DIR[dir];
+    // 다음 타일 확인
+    let nx = Math.round(ex) + d.x;
+    let ny = Math.round(ey) + d.y;
+    if(nx<0) nx = COLS-1;
+    if(nx>=COLS) nx = 0;
+    return !isWall(nx, ny);
+  }
+
+  function wrap(entity){
+    if(entity.x < -0.5) entity.x = COLS-0.5;
+    if(entity.x > COLS-0.5) entity.x = -0.5;
+  }
+
+  function moveEntity(e, allowedDirFilter){
+    // 타일 중앙에서만 방향 전환
+    if(atCenter(e.x) && atCenter(e.y)){
+      e.x = Math.round(e.x); e.y = Math.round(e.y);
+      // 팩맨: 예약된 방향 시도
+      if(e.next && canMove(e.x, e.y, e.next)){
+        e.dir = e.next;
+      }
+      if(!canMove(e.x, e.y, e.dir)){
+        // 못 가면 정지
+        return;
+      }
+    }
+    const d = DIR[e.dir];
+    e.x += d.x * e.speed;
+    e.y += d.y * e.speed;
+    wrap(e);
+  }
+
+  function ghostDecide(g){
+    if(!(atCenter(g.x) && atCenter(g.y))) return;
+    g.x = Math.round(g.x); g.y = Math.round(g.y);
+
+    const opts = ['up','down','left','right'].filter(dir=>{
+      // 역방향 금지(교차로가 아닌 한)
+      const opp = {up:'down',down:'up',left:'right',right:'left'}[g.dir];
+      if(dir===opp) return false;
+      return canMove(g.x, g.y, dir);
+    });
+
+    let choices = opts.length ? opts : ['up','down','left','right'].filter(dir=>canMove(g.x,g.y,dir));
+    if(choices.length===0) return;
+
+    // 타깃: 프라이트면 팩맨 반대로 도망, 아니면 팩맨 추격(약간의 랜덤)
+    let target;
+    if(frightened && !g.eaten){
+      target = {x: 2*g.x - pac.x, y: 2*g.y - pac.y};
+    } else if(g.eaten){
+      target = {x:13.5, y:14}; // 유령집으로
+    } else {
+      target = {x: pac.x, y: pac.y};
+      if(g.name==='clyde' && Math.random()<0.3) target = {x:Math.random()*COLS, y:Math.random()*ROWS};
+    }
+
+    let bestDir = choices[0], bestD = Infinity;
+    for(const dir of choices){
+      const d = DIR[dir];
+      const nx = g.x + d.x, ny = g.y + d.y;
+      const dist = (nx-target.x)**2 + (ny-target.y)**2;
+      if(dist < bestD){ bestD = dist; bestDir = dir; }
+    }
+    g.dir = bestDir;
+  }
+
+  function eatDots(){
+    const cx = Math.round(pac.x), cy = Math.round(pac.y);
+    if(cy<0||cy>=ROWS||cx<0||cx>=COLS) return;
+    const c = grid[cy][cx];
+    if(c==='.'){
+      grid[cy][cx]=' '; score += 10; totalDots--; updateHud();
+    } else if(c==='o'){
+      grid[cy][cx]=' '; score += 50; totalDots--;
+      frightened = true; frightTimer = 360; // 약 6초(60fps 기준)
+      ghosts.forEach(g=>{ if(!g.eaten) g.dir = {up:'down',down:'up',left:'right',right:'left'}[g.dir]||g.dir; });
+      updateHud();
+    }
+    if(totalDots<=0){ win(); }
+  }
+
+  function collideGhosts(){
+    for(const g of ghosts){
+      const dist = Math.abs(g.x-pac.x)+Math.abs(g.y-pac.y);
+      if(dist < 0.6){
+        if(frightened && !g.eaten){
+          g.eaten = true; score += 200; updateHud();
+        } else if(!g.eaten){
+          die();
+          return;
+        }
+      }
+      // 유령집 복귀 완료 시 부활
+      if(g.eaten && Math.abs(g.x-13.5)<1 && Math.abs(g.y-14)<1){
+        g.eaten = false;
+      }
+    }
+  }
+
+  function die(){
+    lives--; updateHud();
+    running = false;
+    if(lives<=0){
+      gameOver();
+    } else {
+      setMsg('잡혔어요! 남은 목숨 '+lives);
+      setTimeout(()=>{ newLevelPositions(); running = true; setMsg(''); }, 1200);
+    }
+  }
+
+  function gameOver(){
+    running = false; started = false;
+    if(score>best){ best=score; localStorage.setItem('pacman_best', String(best)); }
+    updateHud();
+    setMsg('GAME OVER · 점수 '+score);
+    document.getElementById('start').textContent = '↻ 다시 시작';
+  }
+
+  function win(){
+    running = false; started = false; victory = true;
+    if(score>best){ best=score; localStorage.setItem('pacman_best', String(best)); }
+    updateHud();
+    setMsg('🎉 클리어! 점수 '+score);
+    document.getElementById('start').textContent = '↻ 다시 플레이';
+  }
+
+  // ===== 렌더링 =====
+  function draw(){
+    ctx.fillStyle='#000';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // 맵
+    for(let y=0;y<ROWS;y++){
+      for(let x=0;x<COLS;x++){
+        const c = grid[y][x];
+        const px = x*TILE, py = y*TILE;
+        if(c==='#'){
+          ctx.fillStyle='#0a2a66';
+          ctx.fillRect(px+1,py+1,TILE-2,TILE-2);
+          ctx.strokeStyle='#2563eb';
+          ctx.lineWidth=1.5;
+          ctx.strokeRect(px+2.5,py+2.5,TILE-5,TILE-5);
+        } else if(c==='-'){
+          ctx.fillStyle='#ff9ecb';
+          ctx.fillRect(px+2,py+TILE/2-1,TILE-4,2);
+        } else if(c==='.'){
+          ctx.fillStyle='#ffd54a';
+          ctx.beginPath();
+          ctx.arc(px+TILE/2,py+TILE/2,2,0,Math.PI*2);
+          ctx.fill();
+        } else if(c==='o'){
+          ctx.fillStyle='#ffd54a';
+          ctx.beginPath();
+          ctx.arc(px+TILE/2,py+TILE/2,5,0,Math.PI*2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // 팩맨
+    const px = pac.x*TILE+TILE/2, py = pac.y*TILE+TILE/2;
+    const base = {up:-Math.PI/2, down:Math.PI/2, left:Math.PI, right:0, none:0}[pac.dir];
+    const open = pac.mouth; // 0~0.3 라디안 비율
+    ctx.fillStyle='#ffd400';
+    ctx.beginPath();
+    ctx.moveTo(px,py);
+    ctx.arc(px,py,TILE/2-1, base+open, base+Math.PI*2-open);
+    ctx.closePath();
+    ctx.fill();
+
+    // 유령
+    for(const g of ghosts){
+      drawGhost(g);
+    }
+  }
+
+  function drawGhost(g){
+    const gx = g.x*TILE+TILE/2, gy = g.y*TILE+TILE/2, r = TILE/2-1;
+    let body = g.color;
+    if(g.eaten){ body = 'rgba(255,255,255,0.25)'; }
+    else if(frightened){ body = frightTimer<90 && Math.floor(frightTimer/8)%2===0 ? '#ffffff' : '#2121ff'; }
+
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.arc(gx, gy-1, r, Math.PI, 0);
+    ctx.lineTo(gx+r, gy+r);
+    // 물결 치마
+    const steps = 3;
+    for(let i=0;i<=steps;i++){
+      const wx = gx+r - (2*r)*(i/steps);
+      const wy = gy+r - (i%2===0?0:4);
+      ctx.lineTo(wx, wy);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // 눈
+    if(!g.eaten){
+      ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(gx-3, gy-2, 2.6, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(gx+3, gy-2, 2.6, 0, Math.PI*2); ctx.fill();
+      const d = DIR[g.dir];
+      ctx.fillStyle = frightened ? '#2121ff' : '#1a1aff';
+      ctx.beginPath(); ctx.arc(gx-3+d.x*1.1, gy-2+d.y*1.1, 1.3, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(gx+3+d.x*1.1, gy-2+d.y*1.1, 1.3, 0, Math.PI*2); ctx.fill();
+    } else {
+      ctx.fillStyle='#8fd3ff';
+      ctx.beginPath(); ctx.arc(gx-3, gy-2, 1.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(gx+3, gy-2, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // ===== 루프 =====
+  let frame = 0;
+  function loop(){
+    if(!running){ draw(); return; }
+    frame++;
+
+    // 팩맨 입 애니메이션
+    pac.mouth += 0.03*pac.mouthDir;
+    if(pac.mouth>0.33){ pac.mouth=0.33; pac.mouthDir=-1; }
+    if(pac.mouth<0){ pac.mouth=0; pac.mouthDir=1; }
+
+    moveEntity(pac);
+    eatDots();
+
+    // 유령 이동
+    ghosts.forEach(g=>{
+      if(started && frame < g.release && !g.eaten){
+        // 집에서 대기(살짝 위아래)
+        return;
+      }
+      g.speed = g.eaten ? 0.16 : (frightened ? 0.06 : 0.085);
+      ghostDecide(g);
+      moveEntity(g);
+    });
+
+    collideGhosts();
+
+    if(frightened){
+      frightTimer--;
+      if(frightTimer<=0){ frightened=false; }
+    }
+
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ===== 입력 =====
+  function setDir(dir){
+    if(!started){ startGame(); }
+    if(!running) return;
+    pac.next = dir;
+  }
+
+  window.addEventListener('keydown', e=>{
+    const map = {
+      ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right',
+      w:'up', s:'down', a:'left', d:'right', W:'up', S:'down', A:'left', D:'right'
+    };
+    if(map[e.key]){
+      e.preventDefault();
+      setDir(map[e.key]);
+    }
+  });
+
+  document.querySelectorAll('.dpad button').forEach(b=>{
+    b.addEventListener('click', ()=> setDir(b.dataset.dir));
+  });
+
+  document.getElementById('start').addEventListener('click', ()=>{
+    document.getElementById('start').textContent = '▶ START';
+    startGame();
+  });
+
+  // 최초 1회 정적 렌더
+  resetMap();
+  newLevelPositions();
+  draw();
+})();
+</script>
+
+</body>
+</html>
