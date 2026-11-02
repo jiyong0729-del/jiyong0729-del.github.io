@@ -158,6 +158,35 @@ body{
 
 footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
 footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
+
+/* ====== 방명록 ====== */
+.guestbook-form{display:flex;flex-direction:column;gap:12px}
+.guestbook-form input,.guestbook-form textarea{
+  width:100%;padding:12px 14px;border:1px solid #d7deea;border-radius:10px;
+  font-size:14px;font-family:inherit;background:#fbfcfe;color:#1a2235;resize:vertical;
+}
+.guestbook-form input:focus,.guestbook-form textarea:focus{outline:none;border-color:var(--blau);box-shadow:0 0 0 3px rgba(0,77,152,0.12)}
+.guestbook-form textarea{min-height:84px}
+.guestbook-form .row{display:flex;gap:12px;flex-wrap:wrap}
+.guestbook-form .row input{flex:1;min-width:140px}
+.gb-submit{
+  align-self:flex-end;padding:12px 24px;border:none;border-radius:999px;cursor:pointer;
+  font-size:14px;font-weight:800;color:#fff;
+  background:linear-gradient(135deg,var(--grana),var(--blau));
+  box-shadow:0 8px 20px rgba(165,0,68,0.3);transition:transform .2s,opacity .2s;
+}
+.gb-submit:hover{transform:translateY(-2px)}
+.gb-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.gb-status{font-size:13px;min-height:18px;color:#64748b}
+.gb-status.err{color:var(--grana)}
+.gb-status.ok{color:#15803d}
+.gb-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:18px}
+.gb-item{background:#f5f7fb;border:1px solid #e2e8f0;border-left:4px solid var(--blau);border-radius:10px;padding:14px 16px}
+.gb-item .gb-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.gb-item .gb-name{font-weight:800;color:#0f172a;font-size:15px}
+.gb-item .gb-date{font-size:12px;color:#94a3b8;white-space:nowrap}
+.gb-item .gb-msg{font-size:14px;color:#334155;white-space:pre-wrap;word-break:break-word}
+.gb-empty{font-size:14px;color:#94a3b8;text-align:center;padding:16px}
 </style>
 </head>
 <body>
@@ -233,11 +262,130 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
     </ul>
   </div>
 
+  <!-- 방명록 (Supabase 연동) -->
+  <div class="section-card">
+    <h2 class="section-title">📖 방명록</h2>
+    <p style="font-size:14px;color:#64748b;margin-bottom:16px">바르샤 팬이라면 한마디 남겨주세요! 남긴 글은 Supabase에 저장됩니다.</p>
+
+    <form class="guestbook-form" id="gbForm">
+      <div class="row">
+        <input type="text" id="gbName" placeholder="이름 (닉네임)" maxlength="30" required>
+      </div>
+      <textarea id="gbMessage" placeholder="응원 메시지를 남겨주세요 ⚽" maxlength="300" required></textarea>
+      <button type="submit" class="gb-submit" id="gbSubmit">✍️ 남기기</button>
+      <p class="gb-status" id="gbStatus"></p>
+    </form>
+
+    <ul class="gb-list" id="gbList">
+      <li class="gb-empty">방명록을 불러오는 중…</li>
+    </ul>
+  </div>
+
   <footer>
-    <p>© 2026 FC Barcelona Fan Website · Built with GitHub Pages</p>
+    <p>© 2026 FC Barcelona Fan Website · Built with Supabase</p>
     <p class="vb">Visca el Barça! 🔵🔴</p>
   </footer>
 </div>
+
+<!-- ====== Supabase 방명록 스크립트 ====== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  "use strict";
+
+  // 🔑 Supabase 설정 — 아래 두 값을 본인 프로젝트 값으로 교체하세요.
+  //    Supabase 대시보드 > Project Settings > API 에서 확인할 수 있습니다.
+  const SUPABASE_URL = "https://kbpwlnxzjtqszxpuyzvr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImticHdsbnh6anRxc3p4cHV5enZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1OTMyMDYsImV4cCI6MjEwOTE2OTIwNn0.YCA3XsBhu0r2RZeWxJVgY_QiW8j3WvkI6hsvSLBuies";
+
+  const form = document.getElementById('gbForm');
+  const nameEl = document.getElementById('gbName');
+  const msgEl = document.getElementById('gbMessage');
+  const submitBtn = document.getElementById('gbSubmit');
+  const statusEl = document.getElementById('gbStatus');
+  const listEl = document.getElementById('gbList');
+
+  function setStatus(text, type){
+    statusEl.textContent = text || '';
+    statusEl.className = 'gb-status' + (type ? ' ' + type : '');
+  }
+
+  // 설정 안 됐을 때 안내
+  if(SUPABASE_URL.startsWith("YOUR_") || SUPABASE_ANON_KEY.startsWith("YOUR_")){
+    listEl.innerHTML = '<li class="gb-empty">⚠️ Supabase 설정이 필요합니다. index.html 상단 스크립트의 SUPABASE_URL / SUPABASE_ANON_KEY 값을 입력하세요.</li>';
+    setStatus('Supabase 연결 전입니다.', 'err');
+    return;
+  }
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function formatDate(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    }catch(e){ return ''; }
+  }
+
+  // 조회: 최신순으로 방명록 불러오기
+  async function loadEntries(){
+    const { data, error } = await supabase
+      .from('guestbook')
+      .select('*')
+      .order('created_at', { ascending:false })
+      .limit(50);
+
+    if(error){
+      listEl.innerHTML = '<li class="gb-empty">불러오기 실패: ' + escapeHtml(error.message) + '</li>';
+      return;
+    }
+    if(!data || data.length === 0){
+      listEl.innerHTML = '<li class="gb-empty">아직 글이 없어요. 첫 번째로 남겨보세요!</li>';
+      return;
+    }
+    listEl.innerHTML = data.map(row => (
+      '<li class="gb-item">' +
+        '<div class="gb-head">' +
+          '<span class="gb-name">' + escapeHtml(row.name) + '</span>' +
+          '<span class="gb-date">' + formatDate(row.created_at) + '</span>' +
+        '</div>' +
+        '<div class="gb-msg">' + escapeHtml(row.message) + '</div>' +
+      '</li>'
+    )).join('');
+  }
+
+  // 저장: 새 글 INSERT
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = nameEl.value.trim();
+    const message = msgEl.value.trim();
+    if(!name || !message){ setStatus('이름과 메시지를 모두 입력해주세요.', 'err'); return; }
+
+    submitBtn.disabled = true;
+    setStatus('저장 중…');
+
+    const { error } = await supabase
+      .from('guestbook')
+      .insert([{ name, message }]);
+
+    if(error){
+      setStatus('저장 실패: ' + error.message, 'err');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    setStatus('저장 완료! 고마워요 🔵🔴', 'ok');
+    msgEl.value = '';
+    submitBtn.disabled = false;
+    loadEntries(); // 저장 후 즉시 다시 조회
+  });
+
+  loadEntries();
+})();
+</script>
 
 </body>
 </html>
