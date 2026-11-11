@@ -422,6 +422,10 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
   function setStatus(t, type){ statusEl.textContent = t || ''; statusEl.className = 'vote-status' + (type ? ' ' + type : ''); }
   function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+  const VOTED_KEY = 'barca_voted'; // 1인 1표: 이 브라우저가 투표했는지
+  function hasVoted(){ return localStorage.getItem(VOTED_KEY) === '1'; }
+  function markVoted(){ localStorage.setItem(VOTED_KEY, '1'); }
+
   async function loadVotes(){
     const { data, error } = await supabase
       .from('player_votes')
@@ -430,17 +434,23 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
       .order('name', { ascending:true });
     if(error){ listEl.innerHTML = '<li class="gb-empty">불러오기 실패: ' + esc(error.message) + '</li>'; return; }
     if(!data || data.length === 0){ listEl.innerHTML = '<li class="gb-empty">아직 투표 후보가 없습니다. (Supabase player_votes 테이블을 확인하세요)</li>'; return; }
+    const voted = hasVoted();
     const max = Math.max(1, ...data.map(r => r.votes || 0));
     const medals = ['🥇','🥈','🥉'];
     listEl.innerHTML = data.map((row, i) => {
       const pct = Math.round(((row.votes || 0) / max) * 100);
       const rank = i < 3 ? medals[i] : (i+1);
-      return '<li class="vote-item"><div class="vote-rank">' + rank + '</div><div class="vote-main"><div class="vote-top"><span class="vote-name">' + esc(row.name) + '</span><span class="vote-count">' + (row.votes || 0) + '표</span></div><div class="vote-bar"><div class="vote-bar-fill" style="width:' + pct + '%"></div></div></div><button class="vote-btn" data-id="' + row.id + '">👍 투표</button></li>';
+      const btn = voted
+        ? '<button class="vote-btn" disabled>✓ 투표함</button>'
+        : '<button class="vote-btn" data-id="' + row.id + '">👍 투표</button>';
+      return '<li class="vote-item"><div class="vote-rank">' + rank + '</div><div class="vote-main"><div class="vote-top"><span class="vote-name">' + esc(row.name) + '</span><span class="vote-count">' + (row.votes || 0) + '표</span></div><div class="vote-bar"><div class="vote-bar-fill" style="width:' + pct + '%"></div></div></div>' + btn + '</li>';
     }).join('');
-    listEl.querySelectorAll('.vote-btn').forEach(btn => { btn.addEventListener('click', () => castVote(parseInt(btn.dataset.id, 10), btn)); });
+    if(voted){ setStatus('이미 투표하셨어요. 투표는 1인 1회만 가능합니다. 🔵🔴', 'ok'); }
+    listEl.querySelectorAll('.vote-btn:not([disabled])').forEach(btn => { btn.addEventListener('click', () => castVote(parseInt(btn.dataset.id, 10), btn)); });
   }
 
   async function castVote(id, btn){
+    if(hasVoted()){ setStatus('이미 투표하셨어요. 1인 1회만 가능합니다.', 'err'); loadVotes(); return; }
     btn.disabled = true;
     setStatus('투표 중…');
     const { data: cur, error: e1 } = await supabase.from('player_votes').select('votes').eq('id', id).single();
@@ -448,6 +458,7 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
     const next = (cur.votes || 0) + 1;
     const { error: e2 } = await supabase.from('player_votes').update({ votes: next }).eq('id', id);
     if(e2){ setStatus('투표 실패: ' + e2.message, 'err'); btn.disabled = false; return; }
+    markVoted();
     setStatus('투표 완료! 고마워요 🔵🔴', 'ok');
     loadVotes();
   }
