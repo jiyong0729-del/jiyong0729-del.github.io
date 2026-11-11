@@ -187,6 +187,23 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
 .gb-item .gb-date{font-size:12px;color:#94a3b8;white-space:nowrap}
 .gb-item .gb-msg{font-size:14px;color:#334155;white-space:pre-wrap;word-break:break-word}
 .gb-empty{font-size:14px;color:#94a3b8;text-align:center;padding:16px}
+
+/* ====== 선수 인기 투표 ====== */
+.vote-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.vote-item{display:flex;align-items:center;gap:14px;background:#f5f7fb;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px}
+.vote-rank{font-size:18px;font-weight:900;color:var(--gold);min-width:26px;text-align:center}
+.vote-main{flex:1;min-width:0}
+.vote-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.vote-name{font-size:15px;font-weight:800;color:#0f172a}
+.vote-count{font-size:13px;font-weight:700;color:var(--grana);white-space:nowrap}
+.vote-bar{height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+.vote-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blau),var(--grana));transition:width .5s ease}
+.vote-btn{border:none;cursor:pointer;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau));box-shadow:0 6px 16px rgba(165,0,68,0.3);transition:transform .15s,opacity .2s;white-space:nowrap}
+.vote-btn:hover{transform:translateY(-2px)}
+.vote-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.vote-status{font-size:13px;min-height:18px;margin-top:12px;color:#64748b}
+.vote-status.ok{color:#15803d}
+.vote-status.err{color:var(--grana)}
 </style>
 </head>
 <body>
@@ -252,6 +269,16 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
         <span class="more">생애 일대기 보기 →</span>
       </a>
     </div>
+  </div>
+
+  <!-- 선수 인기 투표 (Supabase 연동) -->
+  <div class="section-card">
+    <h2 class="section-title">⭐ 사람들이 가장 좋아하는 선수</h2>
+    <p style="font-size:14px;color:#64748b;margin-bottom:16px">바르샤 대표 선수 중 당신의 최애에게 투표하세요! 실시간 순위는 Supabase에 집계됩니다.</p>
+    <ul class="vote-list" id="voteList">
+      <li class="gb-empty">투표 현황을 불러오는 중…</li>
+    </ul>
+    <p class="vote-status" id="voteStatus"></p>
   </div>
 
   <!-- 방명록 (Supabase 연동) -->
@@ -376,6 +403,56 @@ footer .vb{color:var(--grana);font-weight:700;letter-spacing:1px}
   });
 
   loadEntries();
+})();
+</script>
+
+<!-- ====== Supabase 선수 인기 투표 스크립트 ====== -->
+<script>
+(function(){
+  "use strict";
+  const SUPABASE_URL = "https://kbpwlnxzjtqszxpuyzvr.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImticHdsbnh6anRxc3p4cHV5enZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1OTMyMDYsImV4cCI6MjEwOTE2OTIwNn0.YCA3XsBhu0r2RZeWxJVgY_QiW8j3WvkI6hsvSLBuies";
+
+  const listEl = document.getElementById('voteList');
+  const statusEl = document.getElementById('voteStatus');
+  if(!listEl) return;
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function setStatus(t, type){ statusEl.textContent = t || ''; statusEl.className = 'vote-status' + (type ? ' ' + type : ''); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  async function loadVotes(){
+    const { data, error } = await supabase
+      .from('player_votes')
+      .select('*')
+      .order('votes', { ascending:false })
+      .order('name', { ascending:true });
+    if(error){ listEl.innerHTML = '<li class="gb-empty">불러오기 실패: ' + esc(error.message) + '</li>'; return; }
+    if(!data || data.length === 0){ listEl.innerHTML = '<li class="gb-empty">아직 투표 후보가 없습니다. (Supabase player_votes 테이블을 확인하세요)</li>'; return; }
+    const max = Math.max(1, ...data.map(r => r.votes || 0));
+    const medals = ['🥇','🥈','🥉'];
+    listEl.innerHTML = data.map((row, i) => {
+      const pct = Math.round(((row.votes || 0) / max) * 100);
+      const rank = i < 3 ? medals[i] : (i+1);
+      return '<li class="vote-item"><div class="vote-rank">' + rank + '</div><div class="vote-main"><div class="vote-top"><span class="vote-name">' + esc(row.name) + '</span><span class="vote-count">' + (row.votes || 0) + '표</span></div><div class="vote-bar"><div class="vote-bar-fill" style="width:' + pct + '%"></div></div></div><button class="vote-btn" data-id="' + row.id + '">👍 투표</button></li>';
+    }).join('');
+    listEl.querySelectorAll('.vote-btn').forEach(btn => { btn.addEventListener('click', () => castVote(parseInt(btn.dataset.id, 10), btn)); });
+  }
+
+  async function castVote(id, btn){
+    btn.disabled = true;
+    setStatus('투표 중…');
+    const { data: cur, error: e1 } = await supabase.from('player_votes').select('votes').eq('id', id).single();
+    if(e1){ setStatus('투표 실패: ' + e1.message, 'err'); btn.disabled = false; return; }
+    const next = (cur.votes || 0) + 1;
+    const { error: e2 } = await supabase.from('player_votes').update({ votes: next }).eq('id', id);
+    if(e2){ setStatus('투표 실패: ' + e2.message, 'err'); btn.disabled = false; return; }
+    setStatus('투표 완료! 고마워요 🔵🔴', 'ok');
+    loadVotes();
+  }
+
+  loadVotes();
 })();
 </script>
 
