@@ -43,6 +43,16 @@ td:first-child{font-weight:800;color:#0f172a;white-space:nowrap}
 .wiki-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--blau);text-decoration:none;border:1px solid #cdd8ea;background:#f0f5fb;padding:4px 10px;border-radius:999px;margin-bottom:10px;transition:background .15s}
 .wiki-link:hover{background:#e2ecf8}
 
+/* 표 구단 이름 → 카드 앵커 링크 */
+.team-jump{color:var(--blau);font-weight:800;text-decoration:none;border-bottom:1px dashed var(--blau)}
+.team-jump:hover{color:var(--grana);border-bottom-color:var(--grana)}
+.team{scroll-margin-top:72px}
+
+/* 맨 위로 버튼 */
+#toTop{position:fixed;right:18px;bottom:18px;z-index:20;width:46px;height:46px;border:none;border-radius:50%;cursor:pointer;font-size:18px;color:#fff;background:linear-gradient(135deg,var(--grana),var(--blau));box-shadow:0 8px 20px rgba(0,30,80,0.3);opacity:0;visibility:hidden;transition:opacity .25s,transform .2s}
+#toTop.show{opacity:1;visibility:visible}
+#toTop:hover{transform:translateY(-3px)}
+
 footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
 .vb{color:var(--grana);font-weight:700}
 </style>
@@ -75,7 +85,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
       </thead>
       <tbody>
         <tr>
-          <td>레알 마드리드</td>
+          <td><a class="team-jump" href="#real">레알 마드리드</a></td>
           <td>마드리드</td>
           <td>산티아고 베르나베우</td>
           <td>로스 블랑코스 (하양)</td>
@@ -83,7 +93,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
           <td>바르샤 최대 라이벌. 챔피언스리그 최다 우승 명문</td>
         </tr>
         <tr>
-          <td>아틀레티코 마드리드</td>
+          <td><a class="team-jump" href="#atletico">아틀레티코 마드리드</a></td>
           <td>마드리드</td>
           <td>메트로폴리타노</td>
           <td>로스 콜초네로스</td>
@@ -91,7 +101,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
           <td>탄탄한 수비와 투지. 마드리드 연고 라이벌</td>
         </tr>
         <tr>
-          <td>세비야</td>
+          <td><a class="team-jump" href="#sevilla">세비야</a></td>
           <td>세비야</td>
           <td>라몬 산체스 피스후안</td>
           <td>로스 네르비오네세스</td>
@@ -99,7 +109,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
           <td>유로파리그 최다 우승. 컵대회 강호</td>
         </tr>
         <tr>
-          <td>아틀레틱 빌바오</td>
+          <td><a class="team-jump" href="#bilbao">아틀레틱 빌바오</a></td>
           <td>빌바오 (바스크)</td>
           <td>산 마메스</td>
           <td>로스 레오네스 (사자)</td>
@@ -107,7 +117,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
           <td>바스크 지역 출신 선수만 쓰는 독특한 전통</td>
         </tr>
         <tr>
-          <td>발렌시아</td>
+          <td><a class="team-jump" href="#valencia">발렌시아</a></td>
           <td>발렌시아</td>
           <td>메스타야</td>
           <td>로스 체</td>
@@ -118,7 +128,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
     </table>
   </div>
 
-  <div class="team">
+  <div class="team" id="real">
     <h3>⚪ 레알 마드리드 <span class="rival-tag">최대 라이벌</span></h3>
     <div class="sub">Real Madrid CF · 1902년 창단 · 마드리드</div>
     <a class="wiki-link" href="https://namu.wiki/w/레알%20마드리드%20CF" target="_blank" rel="noopener">🔗 나무위키에서 보기</a>
@@ -126,7 +136,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
     <div class="rivalry">⚡ 바르샤와의 경기는 '엘 클라시코(El Clásico)' — 전 세계가 지켜보는 축구 최대 라이벌전이에요.</div>
   </div>
 
-  <div class="team">
+  <div class="team" id="atletico">
     <h3>🔴⚪ 아틀레티코 마드리드</h3>
     <div class="sub">Atlético de Madrid · 1903년 창단 · 마드리드</div>
     <a class="wiki-link" href="https://namu.wiki/w/아틀레티코%20마드리드" target="_blank" rel="noopener">🔗 나무위키에서 보기</a>
@@ -134,7 +144,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
     <div class="rivalry">⚡ 바르샤와 라리가 상위권을 다투는 경쟁자. 치열한 상위권 승부처예요.</div>
   </div>
 
-  <div class="team">
+  <div class="team" id="sevilla">
     <h3>⚪🔴 세비야</h3>
     <div class="sub">Sevilla FC · 1890년 창단 · 세비야</div>
     <a class="wiki-link" href="https://namu.wiki/w/세비야%20FC" target="_blank" rel="noopener">🔗 나무위키에서 보기</a>
@@ -142,7 +152,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
     <div class="rivalry">⚡ 매 시즌 유럽 대회 진출권(상위권)을 두고 바르샤와 경쟁해요.</div>
   </div>
 
-  <div class="team">
+  <div class="team" id="bilbao">
     <h3>🔴⚪ 아틀레틱 빌바오</h3>
     <div class="sub">Athletic Club · 1898년 창단 · 빌바오(바스크)</div>
     <a class="wiki-link" href="https://namu.wiki/w/아틀레틱%20클루브" target="_blank" rel="noopener">🔗 나무위키에서 보기</a>
@@ -150,7 +160,7 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
     <div class="rivalry">⚡ 코파 델 레이(국왕컵) 결승에서 바르샤와 자주 맞붙는 전통의 강호예요.</div>
   </div>
 
-  <div class="team">
+  <div class="team" id="valencia">
     <h3>🦇 발렌시아</h3>
     <div class="sub">Valencia CF · 1919년 창단 · 발렌시아</div>
     <a class="wiki-link" href="https://namu.wiki/w/발렌시아%20CF" target="_blank" rel="noopener">🔗 나무위키에서 보기</a>
@@ -160,6 +170,17 @@ footer{text-align:center;padding:30px 0;font-size:13px;color:#64748b}
 
   <footer>© 2026 FC Barcelona Fan Website · <span class="vb">Visca el Barça! 🔵🔴</span></footer>
 </div>
+
+<button id="toTop" title="맨 위로" aria-label="맨 위로">↑</button>
+<script>
+(function(){
+  var btn = document.getElementById('toTop');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 300){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+  });
+  btn.addEventListener('click', function(){ window.scrollTo({ top:0, behavior:'smooth' }); });
+})();
+</script>
 
 </body>
 </html>
